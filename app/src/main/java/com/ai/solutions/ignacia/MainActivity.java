@@ -35,6 +35,7 @@ import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
+import com.google.api.services.vision.v1.model.SafeSearchAnnotation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -233,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                         // add the features we want
                         annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                             Feature labelDetection = new Feature();
-                            labelDetection.setType("LABEL_DETECTION");
+                            labelDetection.setType("SAFE_SEARCH_DETECTION");
                             labelDetection.setMaxResults(10);
                             add(labelDetection);
                         }});
@@ -249,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "created Cloud Vision request object, sending request");
 
                     BatchAnnotateImagesResponse response = annotateRequest.execute();
-                    return convertResponseToString(response);
+                    return convertResponseToStringSafeSearch(response);
 
                 } catch (GoogleJsonResponseException e) {
                     Log.d(TAG, "failed to make API request because " + e.getContent());
@@ -295,6 +296,29 @@ public class MainActivity extends AppCompatActivity {
                 message += String.format(Locale.US, "%.3f: %s", label.getScore(), label.getDescription());
                 message += "\n";
             }
+        } else {
+            message += "Nothing";
+        }
+
+        return message;
+    }
+
+    private String convertResponseToStringSafeSearch(BatchAnnotateImagesResponse response) {
+        String message = "Result:\n\n";
+
+        SafeSearchAnnotation safesearch = response.getResponses().get(0).getSafeSearchAnnotation();
+        if (safesearch != null) {
+
+
+            message += String.format(Locale.US, "%s: %s", "Adult: ", safesearch.getAdult().toString());
+            message += "\n";
+            message += String.format(Locale.US, "%s: %s", "Medical: ", safesearch.getMedical().toString());
+            message += "\n";
+            message += String.format(Locale.US, "%s: %s", "Spoof: ", safesearch.getSpoof().toString());
+            message += "\n";
+            message += String.format(Locale.US, "%s: %s", "Violence: ", safesearch.getViolence().toString());
+            message += "\n";
+
         } else {
             message += "Nothing";
         }
